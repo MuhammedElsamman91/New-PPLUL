@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>جدول تمارين PPLUL</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f1f3f5;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 25px auto;
+            padding: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1d3557;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .top-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .exercise-row {
+            display: grid;
+            grid-template-columns: 2.5fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .exercise-row:first-child {
+            background: #1d3557;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .exercise-name {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .exercise-name small {
+            color: #457b9d;
+            font-weight: bold;
+        }
+
+        .exercise-row:first-child small {
+            color: white;
+        }
+
+        .exercise-row input {
+            background: white;
+        }
+
+        .btn-save {
+            margin-top: 20px;
+            background: #1d3557;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #14253d;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .actions button {
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .email-btn {
+            background: #457b9d;
+        }
+
+        .telegram-btn {
+            background: #229ed9;
+        }
+
+        .clear-btn {
+            background: #e63946;
+        }
+
+        .rest-day {
+            text-align: center;
+            background: #fff3cd;
+            color: #856404;
+            padding: 20px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .success {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background: #d8f3dc;
+            color: #1b4332;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .top-form {
+                grid-template-columns: 1fr;
+            }
+
+            .exercise-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-bottom: 12px;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            }
+
+            .exercise-row:first-child {
+                display: none;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>جدول تمارين PPLUL</h1>
+
+        <div class="card">
+            <div class="top-form">
+                <div>
+                    <label for="date">التاريخ</label>
+                    <input type="date" id="date" />
+                </div>
+
+                <div>
+                    <label for="day">اليوم التدريبي</label>
+                    <select id="day" onchange="showWorkout()">
+                        <option value="push">اليوم الأول - دفع Push</option>
+                        <option value="pull">اليوم الثاني - سحب Pull</option>
+                        <option value="legs">اليوم الثالث - أرجل Legs</option>
+                        <option value="rest1">اليوم الرابع - راحة</option>
+                        <option value="upper">اليوم الخامس - علوي Upper</option>
+                        <option value="lower">اليوم السادس - سفلي Lower</option>
+                        <option value="rest2">اليوم السابع - راحة</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 id="workoutTitle"></h2>
+
+            <div id="workoutContent"></div>
+
+            <button class="btn-save" onclick="saveWorkout()">
+                حفظ التمرين
+            </button>
+
+            <div id="successMessage" class="success">
+                تم حفظ التمرين بنجاح
+            </div>
+
+            <div class="actions">
+                <button class="email-btn" onclick="sendEmail()">
+                    إرسال بالإيميل
+                </button>
+
+                <button class="telegram-btn" onclick="sendTelegram()">
+                    إرسال على تليجرام
+                </button>
+
+                <button class="clear-btn" onclick="clearInputs()">
+                    مسح الأوزان والعدات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workoutPlans = {
+            push: {
+                title: "اليوم الأول: دفع Push",
+                exercises: [
+                    ["بنش برس بالبار", "Flat Barbell Bench Press", "3", "6 - 8"],
+                    ["تجميع بالدمبل على بنش مائل", "Incline Dumbbell Press", "3", "8 - 10"],
+                    ["ضغط أكتاف بالدمبل جالسًا", "Seated Dumbbell Shoulder Press", "3", "8 - 10"],
+                    ["رفرفة جانبي بالكابل أو الدمبل", "Lateral Raises", "4", "12 - 15"],
+                    ["ترايسبس كابل دفع لأسفل", "Triceps Cable Pushdown", "3", "10 - 12"]
+                ]
+            },
+
+            pull: {
+                title: "اليوم الثاني: سحب Pull",
+                exercises: [
+                    ["سحب عالي للظهر أو عقلة", "Lat Pulldown / Pull Ups", "3", "8 - 10"],
+                    ["سحب أرضي بالكابل أو البار", "Chest Supported Row / Cable Row", "3", "8 - 10"],
+                    ["سحب للوجه بالكابل", "Face Pulls", "4", "12 - 15"],
+                    ["تبادل بايسبس بالدمبل", "Incline Dumbbell Curls", "3", "10 - 12"],
+                    ["بايسبس هامر بالكابل أو الدمبل", "Hammer Curls", "3", "10 - 12"]
+                ]
+            },
+
+            legs: {
+                title: "اليوم الثالث: أرجل Legs",
+                exercises: [
+                    ["سكوات بالبار", "Barbell Back Squat", "3", "6 - 8"],
+                    ["دفع أرجل بالماكينة", "Leg Press", "3", "10 - 12"],
+                    ["تمرين أمامية أرجل بالماكينة", "Leg Extensions", "3", "12 - 15"],
+                    ["تمرين خلفية أرجل بالماكينة", "Lying Leg Curls", "4", "10 - 12"],
+                    ["سمانة واقفًا", "Standing Calf Raises", "4", "12 - 15"]
+                ]
+            },
+
+            upper: {
+                title: "اليوم الخامس: الجزء العلوي Upper",
+                exercises: [
+                    ["تجميع صدر بالدمبل على بنش مائل", "Incline Dumbbell Press", "3", "8 - 10"],
+                    ["سحب ظهر بالبار أو الكابل", "Barbell / Cable Row", "3", "8 - 10"],
+                    ["تجميع صدر فراشة بالماكينة أو الكابل", "Chest Flyes", "2", "12 - 15"],
+                    ["رفرفة جانبي للأكتاف", "Lateral Raises", "4", "12 - 15"],
+                    ["بايسبس بار + ترايسبس فوق الرأس", "Superset", "3", "10 - 12"]
+                ]
+            },
+
+            lower: {
+                title: "اليوم السادس: الجزء السفلي Lower",
+                exercises: [
+                    ["الرفعة الميتة الروماني", "Romanian Deadlift", "3", "8 - 10"],
+                    ["طعان بالدمبل لكل رجل", "Dumbbell Lunges", "3", "10 لكل رجل"],
+                    ["تمرين خلفية أرجل بالماكينة", "Leg Curls", "3", "12 - 15"],
+                    ["تمرين سمانة جالسًا", "Seated Calf Raises", "4", "12 - 15"],
+                    ["تمرين بطن بالكابل أو رفع الأرجل", "Cable Crunches / Leg Raises", "3", "15"]
+                ]
+            }
+        };
+
+        const dateInput = document.getElementById("date");
+        const dayInput = document.getElementById("day");
+        const workoutTitle = document.getElementById("workoutTitle");
+        const workoutContent = document.getElementById("workoutContent");
+
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, "0");
+            const day = String(today.getDate()).padStart(2, "0");
+
+            return `${year}-${month}-${day}`;
+        }
+
+        dateInput.value = getTodayDate();
+
+        function showWorkout() {
+            const selectedDay = dayInput.value;
+
+            if (selectedDay === "rest1" || selectedDay === "rest2") {
+                workoutTitle.textContent = "يوم راحة";
+                workoutContent.innerHTML = `
+          <div class="rest-day">
+            لا يوجد تمرين اليوم، خذ وقتك في الاستشفاء والنوم الجيد.
+          </div>
+        `;
+                return;
+            }
+
+            const workout = workoutPlans[selectedDay];
+
+            workoutTitle.textContent = workout.title;
+
+            let html = `
+        <div class="exercise-row">
+          <div>التمرين</div>
+          <div>المجموعات</div>
+          <div>العدات المطلوبة</div>
+          <div>الوزن / عداتك</div>
+        </div>
+      `;
+
+            workout.exercises.forEach((exercise, index) => {
+                html += `
+          <div class="exercise-row">
+            <div class="exercise-name">
+              <strong>${exercise[0]}</strong>
+              <small>${exercise[1]}</small>
+            </div>
+
+            <div>
+              <strong>${exercise[2]} مجموعات</strong>
+            </div>
+
+            <div>
+              <strong>${exercise[3]} عدة</strong>
+            </div>
+
+            <div>
+              <input
+                type="text"
+                class="weight"
+                data-index="${index}"
+                placeholder="الوزن"
+              />
+
+              <input
+                type="text"
+                class="actual-reps"
+                data-index="${index}"
+                placeholder="عداتك"
+                style="margin-top: 7px;"
+              />
+            </div>
+          </div>
+        `;
+            });
+
+            workoutContent.innerHTML = html;
+            loadSavedWorkout();
+        }
+
+        function saveWorkout() {
+            const selectedDay = dayInput.value;
+
+            if (selectedDay === "rest1" || selectedDay === "rest2") {
+                alert("هذا يوم راحة");
+                return;
+            }
+
+            const weights = [...document.querySelectorAll(".weight")];
+            const actualReps = [...document.querySelectorAll(".actual-reps")];
+
+            const workoutData = {
+                date: dateInput.value,
+                day: selectedDay,
+                exercises: weights.map((weight, index) => ({
+                    weight: weight.value,
+                    actualReps: actualReps[index].value
+                }))
+            };
+
+            localStorage.setItem(
+                `pplul-${dateInput.value}-${selectedDay}`,
+                JSON.stringify(workoutData)
+            );
+
+            const message = document.getElementById("successMessage");
+            message.style.display = "block";
+
+            setTimeout(() => {
+                message.style.display = "none";
+            }, 2500);
+        }
+
+        function loadSavedWorkout() {
+            const savedData = localStorage.getItem(
+                `pplul-${dateInput.value}-${dayInput.value}`
+            );
+
+            if (!savedData) return;
+
+            const workoutData = JSON.parse(savedData);
+            const weights = document.querySelectorAll(".weight");
+            const actualReps = document.querySelectorAll(".actual-reps");
+
+            workoutData.exercises.forEach((exercise, index) => {
+                if (weights[index]) {
+                    weights[index].value = exercise.weight;
+                }
+
+                if (actualReps[index]) {
+                    actualReps[index].value = exercise.actualReps;
+                }
+            });
+        }
+
+        function createMessage() {
+            const selectedDay = dayInput.value;
+
+            if (selectedDay === "rest1" || selectedDay === "rest2") {
+                return `يوم راحة\nالتاريخ: ${dateInput.value}`;
+            }
+
+            const workout = workoutPlans[selectedDay];
+            const weights = [...document.querySelectorAll(".weight")];
+            const actualReps = [...document.querySelectorAll(".actual-reps")];
+
+            let message = `${workout.title}\n`;
+            message += `التاريخ: ${dateInput.value}\n\n`;
+
+            workout.exercises.forEach((exercise, index) => {
+                message += `${index + 1}. ${exercise[0]}\n`;
+                message += `المجموعات: ${exercise[2]}\n`;
+                message += `المطلوب: ${exercise[3]} عدة\n`;
+                message += `الوزن: ${weights[index].value || "لم يتم التسجيل"}\n`;
+                message += `عداتك: ${actualReps[index].value || "لم يتم التسجيل"}\n\n`;
+            });
+
+            return message;
+        }
+
+        function sendEmail() {
+            const subject = "سجل تمارين PPLUL";
+            const message = createMessage();
+
+            window.location.href =
+                `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+        }
+
+        function sendTelegram() {
+            const message = createMessage();
+
+            const telegramUrl =
+                `https://t.me/share/url?url=&text=${encodeURIComponent(message)}`;
+
+            window.open(telegramUrl, "_blank");
+        }
+
+        function clearInputs() {
+            document.querySelectorAll(".weight").forEach(input => {
+                input.value = "";
+            });
+
+            document.querySelectorAll(".actual-reps").forEach(input => {
+                input.value = "";
+            });
+        }
+
+        dateInput.addEventListener("change", showWorkout);
+
+        showWorkout();
+    </script>
+</body>
+
+</html>
